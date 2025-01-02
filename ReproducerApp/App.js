@@ -5,9 +5,10 @@
  * @format
  */
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  DeviceEventEmitter,
+  Platform,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -25,11 +26,9 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
 
-function Section({children, title}: SectionProps): React.JSX.Element {
+
+function Section({children, title}) {
   const isDarkMode = useColorScheme() === 'dark';
   return (
     <View style={styles.sectionContainer}>
@@ -55,12 +54,36 @@ function Section({children, title}: SectionProps): React.JSX.Element {
   );
 }
 
-function App(): React.JSX.Element {
+function App() {
   const isDarkMode = useColorScheme() === 'dark';
+
+  const [referrer, setReferrer] = useState(null)
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
+
+
+  useEffect(function() {
+    let deferredLinkSubscription = null
+
+    // Adding event listener to handle deferred links
+    if (Platform.OS === 'android') {
+      deferredLinkSubscription = DeviceEventEmitter.addListener(
+        'InstallReferrer',
+        function(data) {
+          console.log(data)
+          setReferrer(data)
+        }
+      )
+    }
+
+    return () => {
+      // Clean up the event listeners on unmount
+      deferredLinkSubscription?.remove?.()
+    }
+  }, [])
+
 
   return (
     <SafeAreaView style={backgroundStyle}>
@@ -88,6 +111,9 @@ function App(): React.JSX.Element {
           </Section>
           <Section title="Learn More">
             Read the docs to discover what to do next:
+          </Section>
+          <Section title="Referrer">
+            {referrer}
           </Section>
           <LearnMoreLinks />
         </View>

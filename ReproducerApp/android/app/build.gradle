@@ -116,4 +116,6 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+    // Install Referrer API
+    implementation ("com.android.installreferrer:installreferrer:2.2")
 }
